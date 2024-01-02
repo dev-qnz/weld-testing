@@ -60,14 +60,14 @@ import org.junit.jupiter.api.Test;
 public class OuterTestClassAndBeanSameInstanceTest {
 
     interface Bean {
-        default String ping() {
+        default String identity() {
             // use hashCode to verify same instance in assertSame thereby ignoring proxies
-            return "ping" + Objects.hashCode(this);
+            return "identity" + Objects.hashCode(this);
         }
     }
 
     static void assertSameBean(Bean bean1, Bean bean2) {
-        assertEquals(bean1.ping(), bean2.ping());
+        assertEquals(bean1.identity(), bean2.identity());
     }
 
     Bean theBean = new Bean() {
@@ -123,7 +123,7 @@ public class OuterTestClassAndBeanSameInstanceTest {
     }
 
     void disposeBean(@Disposes Bean bean) {
-        assertEquals(theBean.ping(), bean.ping());
+        assertEquals(theBean.identity(), bean.identity());
     }
 
     @Inject
