@@ -10,8 +10,14 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/**
+ * According to the specification, producer fields (annotated {@link Produces @Procudes}) are not inherited,
+ * at least not with the effect of a producer by means of CDI.
+ * <blockquote>[...] X declares a non-static producer field x then Y does not inherit this field.</blockquote>
+ * @see https://jakarta.ee/specifications/cdi/4.0/jakarta-cdi-spec-4.0#member_level_inheritance
+ */
 @EnableAutoWeld
-public class InheritedProducerFieldTest {
+class InheritedProducerFieldTest {
 
     @Dependent
     static class Foo {
