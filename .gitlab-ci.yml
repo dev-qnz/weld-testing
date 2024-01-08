@@ -1,0 +1,22 @@
+build-weld-junit:
+  stage: build
+  image: maven:3-eclipse-temurin-17-focal
+  variables:
+    MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+    MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  script:
+    - WELD_JUNIT_DEBUG=spotbugs mvn clean verify -Dno-format -Dspotbugs.failOnError=true
+  cache:
+    key:
+      prefix: ${CI_JOB_NAME_SLUG}
+      files:
+        - .gitlab-ci.yml
+    paths:
+      - .m2/repository/
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}"
+    when: always
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
