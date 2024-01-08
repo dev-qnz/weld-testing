@@ -5,6 +5,7 @@ import java.io.Serializable;
 import jakarta.enterprise.context.Dependent;
 
 @Dependent
+@SuppressWarnings("serial")
 public class V8 implements Engine, Serializable {
 
     private int throttle = 0;
