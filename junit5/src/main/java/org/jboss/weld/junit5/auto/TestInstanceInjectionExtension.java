@@ -18,12 +18,11 @@ package org.jboss.weld.junit5.auto;
 
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.literal.SingletonLiteral;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.InjectionTarget;
 import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
 import jakarta.enterprise.inject.spi.ProcessInjectionTarget;
-import jakarta.enterprise.util.AnnotationLiteral;
-import jakarta.inject.Singleton;
 
 import org.jboss.weld.injection.ForwardingInjectionTarget;
 
@@ -36,9 +35,6 @@ import org.jboss.weld.injection.ForwardingInjectionTarget;
  */
 public class TestInstanceInjectionExtension<T> implements Extension {
 
-    private static final AnnotationLiteral<Singleton> SINGLETON_LITERAL = new AnnotationLiteral<Singleton>() {
-    };
-
     private final Class<?> testClass;
     private final T testInstance;
 
@@ -50,7 +46,7 @@ public class TestInstanceInjectionExtension<T> implements Extension {
     void rewriteTestClassScope(@Observes ProcessAnnotatedType<T> pat) {
 
         if (pat.getAnnotatedType().getJavaClass().equals(testClass)) {
-            pat.configureAnnotatedType().add(SINGLETON_LITERAL);
+            pat.configureAnnotatedType().add(SingletonLiteral.INSTANCE);
         }
 
     }
