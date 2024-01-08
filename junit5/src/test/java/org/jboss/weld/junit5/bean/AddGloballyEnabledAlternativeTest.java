@@ -1,5 +1,6 @@
 package org.jboss.weld.junit5.bean;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 
@@ -38,10 +39,13 @@ public class AddGloballyEnabledAlternativeTest {
                 .build();
     }
 
+    @SuppressWarnings("serial")
+    private static final Type LIST_STRING_TYPE = new TypeLiteral<List<String>>() {
+    }.getType();
+
     static Bean<?> createListBean() {
         return MockBean.builder()
-                .types(new TypeLiteral<List<String>>() {
-                }.getType())
+                .types(LIST_STRING_TYPE)
                 .globallySelectedAlternative(2)
                 .creating(
                         // Mock object provided by Mockito
@@ -61,8 +65,7 @@ public class AddGloballyEnabledAlternativeTest {
         Assertions.assertEquals(1, beans.size());
         Assertions.assertTrue(beans.iterator().next().isAlternative());
 
-        beans = weld.getBeanManager().getBeans(new TypeLiteral<List<String>>() {
-        }.getType());
+        beans = weld.getBeanManager().getBeans(LIST_STRING_TYPE);
         Assertions.assertEquals(1, beans.size());
         Assertions.assertTrue(beans.iterator().next().isAlternative());
     }
