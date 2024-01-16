@@ -20,17 +20,27 @@ import org.junit.jupiter.api.Test;
 @EnableAutoWeld
 class InheritedProducerFieldTest {
 
-    @Dependent
-    static class Foo {
+    interface Foo {
     }
 
     static class BaseClass {
         @Produces
-        Foo baseFooProducer = new Foo();
+        Foo baseFooProducer = new Foo() {
+        };
     }
 
+    // TODO: inner test classes are ignored anyway due to no no-args constructor
     @Nested
-    class DontAddBeanClassesInheritedFromTestBaseClassTest extends BaseClass {
+    class DontAddBeanClassesInheritedFromTestBaseClassNestedInnerTestClassTest extends BaseClass {
+        @Test
+        void test(BeanManager beanManager) {
+            // base class might be found and instantiated if it had a bean defining annotation but it does not
+            assertEquals(0, beanManager.getBeans(Foo.class).size());
+        }
+    }
+
+    @EnableAutoWeld
+    static class DontAddBeanClassesInheritedFromTestBaseClassStaticNestedTestClassTest extends BaseClass {
         @Test
         void test(BeanManager beanManager) {
             assertEquals(0, beanManager.getBeans(Foo.class).size());
