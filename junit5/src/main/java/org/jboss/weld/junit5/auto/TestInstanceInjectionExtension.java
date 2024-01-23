@@ -24,15 +24,18 @@ import org.jboss.weld.util.bean.ForwardingBeanAttributes;
 
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.event.ObservesAsync;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
 import jakarta.enterprise.inject.spi.AnnotatedField;
 import jakarta.enterprise.inject.spi.AnnotatedMethod;
+import jakarta.enterprise.inject.spi.AnnotatedParameter;
 import jakarta.enterprise.inject.spi.AnnotatedType;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanAttributes;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.enterprise.inject.spi.InjectionTarget;
 import jakarta.enterprise.inject.spi.InjectionTargetFactory;
 import jakarta.enterprise.inject.spi.ProducerFactory;
@@ -109,6 +112,40 @@ public class TestInstanceInjectionExtension implements Extension {
                     afterBeanDiscovery.addBean(producerBean);
                 }
             });
+            
+            annotatedType.getMethods().forEach(annotatedMethod -> {
+                boolean isObserverMethod = annotatedMethod.getParameters().stream().filter(param -> {
+                    return param.getAnnotation(Observes.class) != null || param.getAnnotation(ObservesAsync.class) != null;
+                }).findAny().isPresent();
+                if (isObserverMethod) {
+                    afterBeanDiscovery.addObserverMethod()
+                            .read(annotatedMethod)
+                            .notifyWith(eventContext -> {
+                                CreationalContext<?> creationalContext = beanManager.createCreationalContext(null);
+                                try {
+                                    Object[] args = annotatedMethod.getParameters().stream().map(param -> {
+                                        boolean isObserverParam = param.getAnnotation(Observes.class) != null || param.getAnnotation(ObservesAsync.class) != null;
+                                        if (isObserverParam) {
+                                            return eventContext.getEvent();
+                                        } else {
+                                            InjectionPoint injectionPoint = beanManager.createInjectionPoint((AnnotatedParameter) param);
+                                            Object arg = beanManager.getInjectableReference(injectionPoint, creationalContext);
+                                            return arg;
+                                        }
+                                    }).toArray();
+    
+                                    System.out.println("notifying observer method with event = " + annotatedMethod + " " + eventContext.getEvent());
+                                    annotatedMethod.getJavaMember().setAccessible(true);
+                                    annotatedMethod.getJavaMember().invoke(testInstance, args);
+                                } finally {
+                                    creationalContext.release();
+                                }
+                            })
+                            ;
+                }
+            });
+            
+            
             
         });
     }
