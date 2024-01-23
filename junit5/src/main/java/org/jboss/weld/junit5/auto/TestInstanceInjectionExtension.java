@@ -18,17 +18,16 @@ package org.jboss.weld.junit5.auto;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.jboss.weld.injection.ForwardingInjectionTarget;
 import org.jboss.weld.util.bean.ForwardingBeanAttributes;
 
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AnnotatedField;
+import jakarta.enterprise.inject.spi.AnnotatedMethod;
 import jakarta.enterprise.inject.spi.AnnotatedType;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanAttributes;
@@ -36,6 +35,7 @@ import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.InjectionTarget;
 import jakarta.enterprise.inject.spi.InjectionTargetFactory;
+import jakarta.enterprise.inject.spi.ProducerFactory;
 import jakarta.inject.Singleton;
 
 /**
@@ -67,11 +67,6 @@ public class TestInstanceInjectionExtension implements Extension {
                 }
 
                 @Override
-                public Set<Annotation> getQualifiers() {
-                    return Stream.concat(attributes().getQualifiers().stream(), Stream.of(Default.Literal.INSTANCE)).collect(Collectors.toSet());
-                }
-
-                @Override
                 public Class<? extends Annotation> getScope() {
                     return Singleton.class;
                 }
@@ -96,6 +91,25 @@ public class TestInstanceInjectionExtension implements Extension {
             
             Bean<?> bean = beanManager.createBean((BeanAttributes) beanAttributes, testClass, (InjectionTargetFactory) injectionTargetFactory);
             afterBeanDiscovery.addBean(bean);
+            
+            annotatedType.getFields().forEach(annotatedField -> {
+                if (annotatedField.getAnnotation(Produces.class) != null && testClass.equals(annotatedField.getJavaMember().getDeclaringClass())) {
+                    BeanAttributes<?> annotatedFieldBeanAttributes = beanManager.createBeanAttributes(annotatedField);
+                    ProducerFactory<?> producerFactory = beanManager.getProducerFactory((AnnotatedField) annotatedField, (Bean) bean);
+                    Bean<?> producerBean = beanManager.createBean((BeanAttributes) annotatedFieldBeanAttributes, testClass, (ProducerFactory) producerFactory);
+                    afterBeanDiscovery.addBean(producerBean);
+                }
+            });
+            
+            annotatedType.getMethods().forEach(annotatedMethod -> {
+                if (annotatedMethod.getAnnotation(Produces.class) != null && testClass.equals(annotatedMethod.getJavaMember().getDeclaringClass())) {
+                    BeanAttributes<?> producerMethodBeanAttributes = beanManager.createBeanAttributes(annotatedMethod);
+                    ProducerFactory<?> producerFactory = beanManager.getProducerFactory((AnnotatedMethod) annotatedMethod, (Bean) bean);
+                    Bean<?> producerBean = beanManager.createBean((BeanAttributes) producerMethodBeanAttributes, testClass, (ProducerFactory) producerFactory);
+                    afterBeanDiscovery.addBean(producerBean);
+                }
+            });
+            
         });
     }
     
