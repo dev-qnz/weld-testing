@@ -208,7 +208,7 @@ class ClassScanning {
         }
 
         for (Class<?> foundClass : foundClasses) {
-            if (hasBeanDefiningAnnotation(foundClass)) {
+            if (hasBeanDefiningAnnotation(foundClass) && !testClasses.contains(foundClass)) {
                 weld.addBeanClass(foundClass);
             }
         }

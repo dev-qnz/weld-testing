@@ -34,6 +34,11 @@ public class EnableAlternativesInheritanceTest extends BaseEnableAlternativeTest
 
     @Inject
     Foo foo;
+    
+    @Inject
+    void setFoo(Foo foo) {
+        System.out.println("foo = " + foo);
+    }
 
     @Test
     public void testAlternativeEnablementIsInherited() {

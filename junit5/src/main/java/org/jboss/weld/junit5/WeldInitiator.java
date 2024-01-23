@@ -29,6 +29,7 @@ import jakarta.enterprise.inject.spi.InjectionPoint;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.jboss.weld.junit.AbstractWeldInitiator;
+import org.jboss.weld.junit5.auto.TestInstanceInjectionExtension;
 
 /**
  * JUnit 5 initiator - can be used to customize the Weld SE container started by {@link WeldJunit5Extension}.
@@ -190,13 +191,16 @@ public class WeldInitiator extends AbstractWeldInitiator {
         super.shutdownWeldContainer();
     }
 
-    WeldContainer initWeld(Object testInstance) {
-        Weld weld = WeldInitiator.this.weld;
+    WeldContainer initWeld(List<Object> testInstances) {
+        Weld weld = this.weld;
         if (weld == null) {
             // null in case of fromTestPackage() was used
-            weld = createWeld().addPackage(false, testInstance.getClass());
+            weld = createWeld().addPackage(false, testInstances.getLast().getClass());
         }
 
+        weld.addBeanClass(Object.class); // TODO?
+        weld.addExtension(new TestInstanceInjectionExtension(testInstances));
+        
         return initWeldContainer(weld);
     }
 

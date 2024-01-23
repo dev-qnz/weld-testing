@@ -16,67 +16,87 @@
  */
 package org.jboss.weld.junit5.auto;
 
-import jakarta.enterprise.context.spi.CreationalContext;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.literal.SingletonLiteral;
-import jakarta.enterprise.inject.spi.Extension;
-import jakarta.enterprise.inject.spi.InjectionTarget;
-import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
-import jakarta.enterprise.inject.spi.ProcessInjectionTarget;
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.weld.injection.ForwardingInjectionTarget;
+import org.jboss.weld.util.bean.ForwardingBeanAttributes;
+
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AnnotatedType;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanAttributes;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.InjectionTarget;
+import jakarta.enterprise.inject.spi.InjectionTargetFactory;
+import jakarta.inject.Singleton;
 
 /**
  * Extension that makes a test instance appear like a regular bean even though instantiated by JUnit.
+ *
+ * ???:
  * Injection into all test instances, also {@link org.junit.jupiter.api.Nested &#064;Nested} ones, is handled in
  * {@link org.jboss.weld.junit5.WeldInitiator#addObjectsToInjectInto} and related.
- * Proper handling of all other CDI annotations such as {@link jakarta.enterprise.inject.Produces &#064;Produces} is supported
- * only on top level test classes.
  */
-public class TestInstanceInjectionExtension<T> implements Extension {
+public class TestInstanceInjectionExtension implements Extension {
 
-    private final Class<?> testClass;
-    private final T testInstance;
+    private final List<?> testInstances;
 
-    TestInstanceInjectionExtension(T testInstance) {
-        this.testClass = testInstance.getClass();
-        this.testInstance = testInstance;
+    public TestInstanceInjectionExtension(List<?> testInstances) {
+        this.testInstances = testInstances;
     }
 
-    void rewriteTestClassScope(@Observes ProcessAnnotatedType<T> pat) {
+    @SuppressWarnings({"unchecked", "rawtypes"}) // TODO
+    void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManager) {
+        testInstances.forEach(testInstance -> {
+            Class<?> testClass = testInstance.getClass();
+            
+            
+            AnnotatedType<?> annotatedType = beanManager.createAnnotatedType(testClass);
+            BeanAttributes<?> beanAttributes = new ForwardingBeanAttributes<Object>() {
+                @Override
+                protected BeanAttributes<Object> attributes() {
+                    return (BeanAttributes) beanManager.createBeanAttributes(annotatedType);
+                }
 
-        if (pat.getAnnotatedType().getJavaClass().equals(testClass)) {
-            pat.configureAnnotatedType().add(SingletonLiteral.INSTANCE);
-        }
+                @Override
+                public Set<Annotation> getQualifiers() {
+                    return Stream.concat(attributes().getQualifiers().stream(), Stream.of(Default.Literal.INSTANCE)).collect(Collectors.toSet());
+                }
 
+                @Override
+                public Class<? extends Annotation> getScope() {
+                    return Singleton.class;
+                }
+            };
+            
+            InjectionTargetFactory<?> injectionTargetFactory = new InjectionTargetFactory<Object>() {
+                @Override
+                public InjectionTarget<Object> createInjectionTarget(Bean<Object> bean) {
+                    return new ForwardingInjectionTarget() {
+                        @Override
+                        protected InjectionTarget<Object> delegate() {
+                            return beanManager.getInjectionTargetFactory(annotatedType).createInjectionTarget((Bean) bean);
+                        }
+
+                        @Override
+                        public Object produce(CreationalContext creationalContext) {
+                            return testInstance;
+                        }
+                    };
+                }
+            };
+            
+            Bean<?> bean = beanManager.createBean((BeanAttributes) beanAttributes, testClass, (InjectionTargetFactory) injectionTargetFactory);
+            afterBeanDiscovery.addBean(bean);
+        });
     }
-
-    private class TestInstanceInjectionTarget extends ForwardingInjectionTarget<T> {
-
-        private final InjectionTarget<T> injectionTarget;
-
-        TestInstanceInjectionTarget(InjectionTarget<T> injectionTarget) {
-            this.injectionTarget = injectionTarget;
-        }
-
-        @Override
-        protected InjectionTarget<T> delegate() {
-            return injectionTarget;
-        }
-
-        @Override
-        public T produce(CreationalContext<T> creationalContext) {
-            return testInstance;
-        }
-
-    }
-
-    void rewriteTestInstanceInjectionTarget(@Observes ProcessInjectionTarget<T> pit) {
-
-        if (pit.getAnnotatedType().getJavaClass().equals(testClass)) {
-            pit.setInjectionTarget(new TestInstanceInjectionTarget(pit.getInjectionTarget()));
-        }
-
-    }
-
+    
 }

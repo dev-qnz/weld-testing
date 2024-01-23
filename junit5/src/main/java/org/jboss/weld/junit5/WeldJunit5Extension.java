@@ -34,15 +34,14 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import jakarta.enterprise.inject.spi.BeanManager;
-
 import org.jboss.weld.environment.se.Weld;
+import org.jboss.weld.environment.se.WeldContainer;
 import org.jboss.weld.inject.WeldInstance;
 import org.jboss.weld.util.collections.ImmutableList;
 import org.junit.jupiter.api.RepetitionInfo;
@@ -58,6 +57,10 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.io.TempDir;
+
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 
 /**
  * JUnit 5 extension allowing to bootstrap Weld SE container for each @Test method (or once per test class
@@ -258,7 +261,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
     private void startWeldContainerIfAppropriate(TestInstance.Lifecycle expectedLifecycle, ExtensionContext context) {
         // if the lifecycle is what we expect it to be, start Weld container
         if (determineTestLifecycle(context).equals(expectedLifecycle)) {
-            Object testInstance = context.getRequiredTestInstance();
+            Object innerMostTestInstance = context.getRequiredTestInstance();
 
             // store info about explicit param injection, either from global settings or from annotation on the test class
             storeExplicitParamResolutionInformation(context);
@@ -272,15 +275,23 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
                     .map(this::findInitiatorInInstance)
                     .filter(Objects::nonNull)
                     .findFirst()
-                    .orElseGet(() -> getDefaultInitiator(context, testInstance));
+                    .orElseGet(() -> getDefaultInitiator(context, innerMostTestInstance));
             setInitiatorToStore(context, initiator);
 
-            // this ensures the test class is injected into
-            // in case of nested tests, this also injects into any outer classes
-            initiator.addObjectsToInjectInto(new HashSet<>(allTestInstances));
-
             // and finally, init Weld
-            setContainerToStore(context, initiator.initWeld(testInstance));
+            WeldContainer weldContainer = initiator.initWeld(context.getRequiredTestInstances().getAllInstances());
+            setContainerToStore(context, weldContainer);
+
+            BeanManager beanManager = weldContainer.getBeanManager();
+            context.getRequiredTestInstances().getAllInstances().forEach(testInstance -> {
+                Class<?> testClass = testInstance.getClass();
+                
+                Set<Bean<?>> beans = beanManager.getBeans(testClass);
+                System.out.println("instantiating = " + testClass + " / beans = " + beans);
+                Bean<?> bean = beanManager.resolve(beans);
+                CreationalContext<?> creationalContext = beanManager.createCreationalContext(bean);
+                beanManager.getReference(bean, testClass, creationalContext);
+            });
         }
     }
 
