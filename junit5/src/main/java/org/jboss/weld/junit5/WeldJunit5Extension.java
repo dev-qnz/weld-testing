@@ -261,7 +261,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
     private void startWeldContainerIfAppropriate(TestInstance.Lifecycle expectedLifecycle, ExtensionContext context) {
         // if the lifecycle is what we expect it to be, start Weld container
         if (determineTestLifecycle(context).equals(expectedLifecycle)) {
-            Object innerMostTestInstance = context.getRequiredTestInstance();
+            List<?> testInstances = context.getRequiredTestInstances().getAllInstances();
 
             // store info about explicit param injection, either from global settings or from annotation on the test class
             storeExplicitParamResolutionInformation(context);
@@ -275,11 +275,11 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
                     .map(this::findInitiatorInInstance)
                     .filter(Objects::nonNull)
                     .findFirst()
-                    .orElseGet(() -> getDefaultInitiator(context, innerMostTestInstance));
+                    .orElseGet(() -> getDefaultInitiator(context, testInstances));
             setInitiatorToStore(context, initiator);
 
             // and finally, init Weld
-            WeldContainer weldContainer = initiator.initWeld(context.getRequiredTestInstances().getAllInstances());
+            WeldContainer weldContainer = initiator.initWeld(testInstances);
             setContainerToStore(context, weldContainer);
 
             BeanManager beanManager = weldContainer.getBeanManager();

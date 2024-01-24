@@ -191,7 +191,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
         super.shutdownWeldContainer();
     }
 
-    WeldContainer initWeld(List<Object> testInstances) {
+    WeldContainer initWeld(List<?> testInstances) {
         Weld weld = this.weld;
         if (weld == null) {
             // null in case of fromTestPackage() was used
