@@ -359,7 +359,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
         return initiator;
     }
 
-    private WeldInitiator getDefaultInitiator(ExtensionContext context, Object testInstance) {
+    private WeldInitiator getDefaultInitiator(ExtensionContext context, List<?> testInstances) {
 
         Weld weld = WeldInitiator.createWeld();
         WeldInitiator.Builder builder = WeldInitiator.from(weld);
@@ -370,7 +370,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
         for (WeldJunitEnricher enricher : getEnrichersFromStore(context)) {
             String property = System.getProperty(enricher.getClass().getName());
             if (property == null || Boolean.parseBoolean(property)) {
-                enricher.enrich(testInstance, context, weld, builder);
+                enricher.enrich(testInstances.getLast(), context, weld, builder);
             }
         }
 
