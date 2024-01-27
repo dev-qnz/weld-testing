@@ -299,6 +299,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
                 Bean<?> bean = beanManager.resolve(beans);
                 CreationalContext<?> creationalContext = beanManager.createCreationalContext(bean);
                 beanManager.getReference(bean, testClass, creationalContext);
+                // TODO: creationalContext.release()
             });
         }
     }
