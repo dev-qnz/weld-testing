@@ -83,7 +83,7 @@ public class ExtensionContextUtils {
     /**
      * Return boolean indicating whether explicit parameter injection is enabled
      */
-    public static Boolean getExplicitInjectionInfoFromStore(ExtensionContext context) {
+    public static boolean getExplicitInjectionInfoFromStore(ExtensionContext context) {
         Boolean result = getTestStore(context).get(EXPLICIT_PARAM_INJECTION, Boolean.class);
         return (result == null) ? Boolean.FALSE : result;
     }
