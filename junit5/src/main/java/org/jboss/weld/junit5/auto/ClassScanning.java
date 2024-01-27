@@ -48,7 +48,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Qualifier;
 import jakarta.interceptor.Interceptor;
 
-import org.jboss.weld.environment.se.Weld;
+import org.jboss.weld.bootstrap.spi.BeanDiscoveryMode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -63,9 +63,20 @@ import org.junit.platform.commons.util.Preconditions;
 /**
  * Provides <b>automagic</b> bean class discovery for a test class instance.
  */
-class ClassScanning {
+public class ClassScanning {
 
-    static void scanForRequiredBeanClasses(List<Class<?>> testClasses, Weld weld, boolean explicitInjection) {
+    public static abstract class WeldLikeInterface {
+        void setBeanDiscoveryMode(BeanDiscoveryMode beanDiscoveryMode) {}
+        void addPackage(boolean recursively, Class<?> classInThePackage) {}
+        void addBeanClass(Class<?> beanClass) {}
+        void addExtension(Extension extension) {}
+        void addInterceptor(Class<?> interceptorClass) {}
+        void addDecorator(Class<?> decoratorClass) {}
+        void addAlternative(Class<?> alternative) {}
+        void addAlternativeStereotype(Class<? extends Annotation> alternativeStereotype) {}
+    }
+    
+    static void scanForRequiredBeanClasses(List<Class<?>> testClasses, WeldLikeInterface weld, boolean explicitInjection) {
 
         List<Class<?>> classesToProcess = new ArrayList<>();
         classesToProcess.addAll(testClasses);

@@ -17,8 +17,10 @@
 package org.jboss.weld.junit5.auto;
 
 import java.lang.annotation.Annotation;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.jboss.weld.bean.ManagedBean;
 import org.jboss.weld.injection.ForwardingInjectionTarget;
 import org.jboss.weld.util.bean.ForwardingBeanAttributes;
 
@@ -27,6 +29,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.event.ObservesAsync;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AfterTypeDiscovery;
 import jakarta.enterprise.inject.spi.AnnotatedField;
 import jakarta.enterprise.inject.spi.AnnotatedMethod;
 import jakarta.enterprise.inject.spi.AnnotatedParameter;
@@ -51,13 +54,26 @@ import jakarta.inject.Singleton;
 public class TestInstanceInjectionExtension implements Extension {
 
     private final List<?> testInstances;
+    private List<Class<?>> enabledAlternatives = new LinkedList<>();
 
     public TestInstanceInjectionExtension(List<?> testInstances) {
         this.testInstances = testInstances;
     }
 
+    public void addEnabledAlternativeClass(Class<?> enabledAlternativeClass) {
+        enabledAlternatives.add(enabledAlternativeClass);
+    }
+    
+    void afterTypeDiscovery(@Observes AfterTypeDiscovery afterTypeDiscovery) {
+        enabledAlternatives.forEach(enabledAlternativeClass -> {
+            afterTypeDiscovery.getAlternatives().add(enabledAlternativeClass);
+        });
+    }
+    
     @SuppressWarnings({"unchecked", "rawtypes"}) // TODO
-    void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManager) {
+    void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManagerToWorkAround) {
+        
+        BeanManager beanManager = beanManagerToWorkAround; // ((ManagedBean<?>) beanManagerToWorkAround.resolve(beanManagerToWorkAround.getBeans(BeanManagerWorkaroundBean.class))).getBeanManager();
         testInstances.forEach(testInstance -> {
             Class<?> testClass = testInstance.getClass();
             

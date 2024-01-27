@@ -17,6 +17,7 @@
 package org.jboss.weld.junit5;
 
 import java.lang.annotation.Annotation;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,6 +161,8 @@ public class WeldInitiator extends AbstractWeldInitiator {
      */
     public static final class Builder extends AbstractBuilder<WeldInitiator, Builder> {
 
+        List<Class<?>> enabledAlternativeClasses = new LinkedList<>();
+        
         private Builder(Weld weld) {
             super(weld);
         }
@@ -173,18 +176,27 @@ public class WeldInitiator extends AbstractWeldInitiator {
         protected WeldInitiator build(Weld weld, List<Object> instancesToInject,
                 Set<Class<? extends Annotation>> scopesToActivate, Set<Bean<?>> beans) {
             return new WeldInitiator(weld, instancesToInject, scopesToActivate, beans, resources, getEjbFactory(),
-                    getPersistenceUnitFactory(), getPersistenceContextFactory());
+                    getPersistenceUnitFactory(), getPersistenceContextFactory(), enabledAlternativeClasses);
+        }
+
+        public void addEnabledAlternatives(List<Class<?>> enabledAlternativeClasses) {
+            this.enabledAlternativeClasses.addAll(enabledAlternativeClasses);
         }
 
     }
 
+    private final List<Class<?>> enabledAlternativeClasses;
+    
     private WeldInitiator(Weld weld, List<Object> instancesToInject, Set<Class<? extends Annotation>> scopesToActivate,
             Set<Bean<?>> beans,
             Map<String, Object> resources, Function<InjectionPoint, Object> ejbFactory,
             Function<InjectionPoint, Object> persistenceUnitFactory,
-            Function<InjectionPoint, Object> persistenceContextFactory) {
+            Function<InjectionPoint, Object> persistenceContextFactory,
+            List<Class<?>> enabledAlternativeClasses
+    ) {
         super(weld, instancesToInject, scopesToActivate, beans, resources, ejbFactory, persistenceUnitFactory,
                 persistenceContextFactory);
+        this.enabledAlternativeClasses = enabledAlternativeClasses;
     }
 
     void shutdownWeld() {
@@ -199,14 +211,12 @@ public class WeldInitiator extends AbstractWeldInitiator {
         }
 
         weld.addBeanClass(Object.class); // TODO?
-        weld.addExtension(new TestInstanceInjectionExtension(testInstances));
+//        weld.addBeanClass(BeanManagerWorkaroundBean.class); // TODO?
+        TestInstanceInjectionExtension testInstanceInjectionExtension = new TestInstanceInjectionExtension(testInstances);
+        weld.addExtension(testInstanceInjectionExtension);
+        enabledAlternativeClasses.forEach(testInstanceInjectionExtension::addEnabledAlternativeClass);
         
         return initWeldContainer(weld);
     }
 
-    void addObjectsToInjectInto(Set<Object> instancesToInjectInto) {
-        for (Object o : instancesToInjectInto) {
-            instancesToInject.add(createToInject(o));
-        }
-    }
 }
