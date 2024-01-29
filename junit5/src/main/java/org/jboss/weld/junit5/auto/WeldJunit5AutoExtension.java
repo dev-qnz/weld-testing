@@ -115,7 +115,8 @@ public class WeldJunit5AutoExtension extends WeldJunit5Extension {
             }
             @Override
             void addAlternativeStereotype(Class<? extends Annotation> alternativeStereotype) {
-                weld.addAlternativeStereotype(alternativeStereotype);
+//                weld.addAlternativeStereotype(alternativeStereotype);
+                enabledAlternativeClasses.add(alternativeStereotype);
             }
         }, getExplicitInjectionInfoFromStore(context));
 
