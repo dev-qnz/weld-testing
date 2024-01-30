@@ -91,6 +91,9 @@ public class WeldJunit5AutoExtension extends WeldJunit5Extension {
             }
             @Override
             void addBeanClass(Class<?> beanClass) {
+                if (testClasses.contains(beanClass)) {
+                    return;
+                }
                 weld.addBeanClass(beanClass);
             }
             @Override
