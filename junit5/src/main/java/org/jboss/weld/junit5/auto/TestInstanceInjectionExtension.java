@@ -20,7 +20,8 @@ import java.lang.annotation.Annotation;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jboss.weld.bean.ManagedBean;
+import org.jboss.weld.bean.ForwardingBean;
+import org.jboss.weld.bean.SyntheticProducerBean;
 import org.jboss.weld.injection.ForwardingInjectionTarget;
 import org.jboss.weld.util.bean.ForwardingBeanAttributes;
 
@@ -41,6 +42,7 @@ import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.enterprise.inject.spi.InjectionTarget;
 import jakarta.enterprise.inject.spi.InjectionTargetFactory;
+import jakarta.enterprise.inject.spi.PassivationCapable;
 import jakarta.enterprise.inject.spi.ProducerFactory;
 import jakarta.inject.Singleton;
 
@@ -116,7 +118,8 @@ public class TestInstanceInjectionExtension implements Extension {
                     BeanAttributes<?> annotatedFieldBeanAttributes = beanManager.createBeanAttributes(annotatedField);
                     ProducerFactory<?> producerFactory = beanManager.getProducerFactory((AnnotatedField) annotatedField, (Bean) bean);
                     Bean<?> producerBean = beanManager.createBean((BeanAttributes) annotatedFieldBeanAttributes, testClass, (ProducerFactory) producerFactory);
-                    afterBeanDiscovery.addBean(producerBean);
+                    PassivationCapableSyntheticProducerBean passivationCapableProducerBean = new PassivationCapableSyntheticProducerBean((SyntheticProducerBean<?, ?>) producerBean);
+                    afterBeanDiscovery.addBean(passivationCapableProducerBean);
                 }
             });
             
@@ -125,7 +128,8 @@ public class TestInstanceInjectionExtension implements Extension {
                     BeanAttributes<?> producerMethodBeanAttributes = beanManager.createBeanAttributes(annotatedMethod);
                     ProducerFactory<?> producerFactory = beanManager.getProducerFactory((AnnotatedMethod) annotatedMethod, (Bean) bean);
                     Bean<?> producerBean = beanManager.createBean((BeanAttributes) producerMethodBeanAttributes, testClass, (ProducerFactory) producerFactory);
-                    afterBeanDiscovery.addBean(producerBean);
+                    PassivationCapableSyntheticProducerBean passivationCapableProducerBean = new PassivationCapableSyntheticProducerBean((SyntheticProducerBean<?, ?>) producerBean);
+                    afterBeanDiscovery.addBean(passivationCapableProducerBean);
                 }
             });
             
@@ -166,4 +170,23 @@ public class TestInstanceInjectionExtension implements Extension {
         });
     }
     
+    static class PassivationCapableSyntheticProducerBean<T, X> extends ForwardingBean<T> implements PassivationCapable {
+
+        private final SyntheticProducerBean<T, X> delegate;
+        
+        PassivationCapableSyntheticProducerBean(SyntheticProducerBean<T, X> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SyntheticProducerBean<T, X> delegate() {
+            return delegate;
+        }
+
+        @Override
+        public String getId() {
+            return delegate().getId();
+        }
+    }
+
 }
