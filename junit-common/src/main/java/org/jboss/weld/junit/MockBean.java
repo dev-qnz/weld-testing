@@ -46,6 +46,7 @@ import jakarta.inject.Scope;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.jboss.weld.util.collections.ImmutableSet;
+import org.jboss.weld.util.reflection.Formats;
 import org.jboss.weld.util.reflection.HierarchyDiscovery;
 
 /**
@@ -667,6 +668,11 @@ public class MockBean<T> implements Bean<T>, PassivationCapable {
          */
         void destroy(T instance, CreationalContext<T> creationalContext);
 
+    }
+
+    @Override
+    public String toString() {
+        return "Mock Bean [" + getBeanClass().toString() + "] with qualifiers [" + Formats.formatAnnotations(getQualifiers()) + "]";
     }
 
 }
