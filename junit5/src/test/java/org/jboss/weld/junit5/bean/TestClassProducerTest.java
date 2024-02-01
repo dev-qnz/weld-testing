@@ -46,13 +46,18 @@ public class TestClassProducerTest {
     @SuppressWarnings("serial")
     @Test
     public void testBean() {
-        Assertions.assertEquals("42", weld.select(new TypeLiteral<List<String>>() {
+        Assertions.assertEquals(getTestInstanceIdentity(), weld.select(new TypeLiteral<List<String>>() {
         }).get().get(0));
     }
 
     @ApplicationScoped
     @Produces
     List<String> produceList() {
-        return when(mock(List.class).get(0)).thenReturn("42").getMock();
+        return when(mock(List.class).get(0)).thenReturn(getTestInstanceIdentity()).getMock();
     }
+    
+    private String getTestInstanceIdentity() {
+        return "" + hashCode();
+    }
+    
 }
