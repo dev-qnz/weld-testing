@@ -218,7 +218,7 @@ public class MockBean<T> implements Bean<T>, PassivationCapable {
      *
      * @return <code>true</code> if the initiator should select the bean for the synthetic bean archive
      */
-    boolean isSelectForSyntheticBeanArchive() {
+    public boolean isSelectForSyntheticBeanArchive() {
         return selectForSyntheticBeanArchive;
     }
 

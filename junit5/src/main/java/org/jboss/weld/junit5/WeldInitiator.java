@@ -30,6 +30,7 @@ import jakarta.enterprise.inject.spi.InjectionPoint;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.jboss.weld.junit.AbstractWeldInitiator;
+import org.jboss.weld.junit.MockBean;
 import org.jboss.weld.junit5.auto.TestInstanceInjectionExtension;
 
 /**
@@ -179,6 +180,19 @@ public class WeldInitiator extends AbstractWeldInitiator {
                     getPersistenceUnitFactory(), getPersistenceContextFactory(), enabledAlternativeClasses);
         }
 
+        @Override
+        public Builder addBeans(Bean<?>... beans) {
+            for (Bean<?> bean : beans) {
+                if (bean.isAlternative() && bean instanceof MockBean<?>) {
+                    MockBean<?> mockBean = (MockBean<?>) bean;
+                    if (mockBean.isSelectForSyntheticBeanArchive()) {
+                        addEnabledAlternatives(List.of(bean.getBeanClass()));
+                    }
+                }
+            }
+            return super.addBeans(beans);
+        }
+        
         public void addEnabledAlternatives(List<Class<?>> enabledAlternativeClasses) {
             this.enabledAlternativeClasses.addAll(enabledAlternativeClasses);
         }
