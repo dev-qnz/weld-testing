@@ -41,7 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class TestClassProducerTest {
 
     @WeldSetup
-    public WeldInitiator weld = WeldInitiator.from(List.class, TestClassProducerTest.class).build();
+    public WeldInitiator weld = WeldInitiator.from(List.class).build();
 
     @SuppressWarnings("serial")
     @Test
