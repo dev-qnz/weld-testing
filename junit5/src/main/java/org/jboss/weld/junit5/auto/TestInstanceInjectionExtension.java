@@ -67,9 +67,7 @@ public class TestInstanceInjectionExtension implements Extension {
     }
     
     void afterTypeDiscovery(@Observes AfterTypeDiscovery afterTypeDiscovery) {
-        enabledAlternatives.forEach(enabledAlternativeClass -> {
-            afterTypeDiscovery.getAlternatives().add(enabledAlternativeClass);
-        });
+        afterTypeDiscovery.getAlternatives().addAll(enabledAlternatives);
     }
     
     @SuppressWarnings({"unchecked", "rawtypes"}) // TODO
