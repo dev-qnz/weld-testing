@@ -185,6 +185,18 @@ public class TestInstanceInjectionExtension implements Extension {
         public String getId() {
             return delegate().getId();
         }
+
+        @Override
+        public String toString() {
+            String name = getName();
+            if (name == null) {
+                name = "";
+            } else {
+                name = " " + name;
+            }
+            return getClass().getSimpleName() + name + " for " + delegate().toString();
+        }
+
     }
 
 }
