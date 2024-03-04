@@ -65,19 +65,18 @@ public class TestInstanceInjectionExtension implements Extension {
     public void addEnabledAlternativeClass(Class<?> enabledAlternativeClass) {
         enabledAlternatives.add(enabledAlternativeClass);
     }
-    
+
     void afterTypeDiscovery(@Observes AfterTypeDiscovery afterTypeDiscovery) {
         afterTypeDiscovery.getAlternatives().addAll(enabledAlternatives);
     }
-    
-    @SuppressWarnings({"unchecked", "rawtypes"}) // TODO
+
+    @SuppressWarnings({ "unchecked", "rawtypes" }) // TODO
     void afterBeanDiscovery(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManagerToWorkAround) {
-        
+
         BeanManager beanManager = beanManagerToWorkAround; // ((ManagedBean<?>) beanManagerToWorkAround.resolve(beanManagerToWorkAround.getBeans(BeanManagerWorkaroundBean.class))).getBeanManager();
         testInstances.forEach(testInstance -> {
             Class<?> testClass = testInstance.getClass();
-            
-            
+
             AnnotatedType<?> annotatedType = beanManager.createAnnotatedType(testClass);
             BeanAttributes<?> beanAttributes = new ForwardingBeanAttributes<Object>() {
                 @Override
@@ -90,7 +89,7 @@ public class TestInstanceInjectionExtension implements Extension {
                     return Singleton.class;
                 }
             };
-            
+
             InjectionTargetFactory<?> injectionTargetFactory = new InjectionTargetFactory<Object>() {
                 @Override
                 public InjectionTarget<Object> createInjectionTarget(Bean<Object> bean) {
@@ -107,7 +106,7 @@ public class TestInstanceInjectionExtension implements Extension {
                     };
                 }
             };
-            
+
             Bean<?> bean = beanManager.createBean((BeanAttributes) beanAttributes, testClass, (InjectionTargetFactory) injectionTargetFactory);
             afterBeanDiscovery.addBean(bean);
             
@@ -120,7 +119,7 @@ public class TestInstanceInjectionExtension implements Extension {
                     afterBeanDiscovery.addBean(passivationCapableProducerBean);
                 }
             });
-            
+
             annotatedType.getMethods().forEach(annotatedMethod -> {
                 if (annotatedMethod.getAnnotation(Produces.class) != null && testClass.equals(annotatedMethod.getJavaMember().getDeclaringClass())) {
                     BeanAttributes<?> producerMethodBeanAttributes = beanManager.createBeanAttributes(annotatedMethod);
@@ -130,7 +129,7 @@ public class TestInstanceInjectionExtension implements Extension {
                     afterBeanDiscovery.addBean(passivationCapableProducerBean);
                 }
             });
-            
+
             annotatedType.getMethods().forEach(annotatedMethod -> {
                 boolean isObserverMethod = annotatedMethod.getParameters().stream().filter(param -> {
                     return param.getAnnotation(Observes.class) != null || param.getAnnotation(ObservesAsync.class) != null;
@@ -162,16 +161,14 @@ public class TestInstanceInjectionExtension implements Extension {
                             ;
                 }
             });
-            
-            
-            
+
         });
     }
-    
+
     static class PassivationCapableSyntheticProducerBean<T, X> extends ForwardingBean<T> implements PassivationCapable {
 
         private final SyntheticProducerBean<T, X> delegate;
-        
+
         PassivationCapableSyntheticProducerBean(SyntheticProducerBean<T, X> delegate) {
             this.delegate = delegate;
         }

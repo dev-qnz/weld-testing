@@ -48,11 +48,11 @@ class NoNoArgConstructorTest {
 
     @Inject
     Provider<ExplicitlyProducedBean> injectedExplicitlyProducedBeanInstance;
-    
+
     void disposeBean(@Disposes ExplicitlyProducedBean explicitlyProducedBean) {
         assertEquals(theExplicitlyProducedBean.identity(), explicitlyProducedBean.identity());
     }
-    
+
     @Dependent
     static class AutoBean {
 //        @Inject ExplicitlyProducedBean bean;
@@ -138,14 +138,14 @@ class NoNoArgConstructorTest {
 
         @Inject
         Provider<ExplicitlyProducedNestedBean> injectedExplicitlyProducedNestedBeanInstance;
-        
+
         void disposeBean(@Disposes ExplicitlyProducedNestedBean explicitlyProducedNestedBean) {
             assertEquals(theExplicitlyProducedNestedBean.identity(), explicitlyProducedNestedBean.identity());
         }
 
         @Inject
         AutoBean nestedInjectedAutoBean;
-        
+
         @Test
         void testFieldInstanceInjected() {
             assertEquals(theExplicitlyProducedBean.identity(), injectedExplicitlyProducedBeanInstance.get().identity());
@@ -153,7 +153,7 @@ class NoNoArgConstructorTest {
             assertNotNull(nestedInjectedAutoBean);
             assertNotEquals(injectedAutoBean, nestedInjectedAutoBean);
         }
-        
+
         @Test
         void testFieldInstanceInjectedProducedByNestedProducer() {
             System.out.println("injectedExplicitlyProducedNestedBeanInstance = " + injectedExplicitlyProducedNestedBeanInstance);

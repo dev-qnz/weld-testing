@@ -55,9 +55,9 @@ public class TestClassProducerTest {
     List<String> produceList() {
         return when(mock(List.class).get(0)).thenReturn(getTestInstanceIdentity()).getMock();
     }
-    
+
     private String getTestInstanceIdentity() {
         return "" + hashCode();
     }
-    
+
 }

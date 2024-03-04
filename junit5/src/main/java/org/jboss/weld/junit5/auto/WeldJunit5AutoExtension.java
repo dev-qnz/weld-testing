@@ -26,6 +26,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.enterprise.inject.spi.Extension;
+
 import org.jboss.weld.bootstrap.spi.BeanDiscoveryMode;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.junit5.WeldInitiator;
@@ -33,8 +35,6 @@ import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldJunitEnricher;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
-
-import jakarta.enterprise.inject.spi.Extension;
 
 /**
  * An alternative to {@link WeldJunit5Extension} allowing to fully leverage an annotation based configuration approach.
@@ -89,6 +89,7 @@ public class WeldJunit5AutoExtension extends WeldJunit5Extension {
             void setBeanDiscoveryMode(BeanDiscoveryMode beanDiscoveryMode) {
                 weld.setBeanDiscoveryMode(beanDiscoveryMode);
             }
+
             @Override
             void addBeanClass(Class<?> beanClass) {
                 if (testClasses.contains(beanClass)) {
@@ -96,26 +97,32 @@ public class WeldJunit5AutoExtension extends WeldJunit5Extension {
                 }
                 weld.addBeanClass(beanClass);
             }
+
             @Override
             void addPackage(boolean recursively, Class<?> classInThePackage) {
                 weld.addPackage(recursively, classInThePackage);
             }
+
             @Override
             void addExtension(Extension extension) {
                 weld.addExtension(extension);
             }
+
             @Override
             void addInterceptor(Class<?> interceptorClass) {
                 weld.addInterceptor(interceptorClass);
             }
+
             @Override
             void addDecorator(Class<?> decoratorClass) {
                 weld.addDecorator(decoratorClass);
             }
+
             @Override
             void addAlternative(Class<?> alternative) {
                 enabledAlternativeClasses.add(alternative);
             }
+
             @Override
             void addAlternativeStereotype(Class<? extends Annotation> alternativeStereotype) {
 //                weld.addAlternativeStereotype(alternativeStereotype);
@@ -124,7 +131,7 @@ public class WeldJunit5AutoExtension extends WeldJunit5Extension {
         }, getExplicitInjectionInfoFromStore(context));
 
         weldInitiatorBuilder.addEnabledAlternatives(enabledAlternativeClasses);
-        
+
         testClasses.stream()
                 .map(testClass -> AnnotationSupport.findRepeatableAnnotations(testClass, ActivateScopes.class))
                 .flatMap(ann -> ann.stream().map(ActivateScopes::value))

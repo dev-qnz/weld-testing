@@ -40,6 +40,10 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
+
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.jboss.weld.inject.WeldInstance;
@@ -58,10 +62,6 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-
-import jakarta.enterprise.context.spi.CreationalContext;
-import jakarta.enterprise.inject.spi.Bean;
-import jakarta.enterprise.inject.spi.BeanManager;
 
 /**
  * JUnit 5 extension allowing to bootstrap Weld SE container for each @Test method (or once per test class
@@ -301,7 +301,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
             BeanManager beanManager = weldContainer.getBeanManager();
             context.getRequiredTestInstances().getAllInstances().forEach(testInstance -> {
                 Class<?> testClass = testInstance.getClass();
-                
+
                 Set<Bean<?>> beans = beanManager.getBeans(testClass);
                 System.out.println("instantiating = " + testClass + " / beans = " + beans);
                 Bean<?> bean = beanManager.resolve(beans);
@@ -379,7 +379,7 @@ public class WeldJunit5Extension implements AfterAllCallback, BeforeAllCallback,
         for (WeldJunitEnricher enricher : getEnrichersFromStore(context)) {
             String property = System.getProperty(enricher.getClass().getName());
             if (property == null || Boolean.parseBoolean(property)) {
-                enricher.enrich(testInstances.getLast(), context, weld, builder);
+                enricher.enrich(testInstances.get/* Last */(testInstances.size() - 1), context, weld, builder);
             }
         }
 

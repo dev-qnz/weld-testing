@@ -75,7 +75,7 @@ public class ClassScanning {
         void addAlternative(Class<?> alternative) {}
         void addAlternativeStereotype(Class<? extends Annotation> alternativeStereotype) {}
     }
-    
+
     static void scanForRequiredBeanClasses(List<Class<?>> testClasses, WeldLikeInterface weld, boolean explicitInjection) {
 
         List<Class<?>> classesToProcess = new ArrayList<>();

@@ -173,7 +173,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
     public static final class Builder extends AbstractBuilder<WeldInitiator, Builder> {
 
         List<Class<?>> enabledAlternativeClasses = new LinkedList<>();
-        
+
         private Builder(Weld weld) {
             super(weld);
         }
@@ -202,7 +202,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
             }
             return super.addBeans(beans);
         }
-        
+
         public void addEnabledAlternatives(List<Class<?>> enabledAlternativeClasses) {
             this.enabledAlternativeClasses.addAll(enabledAlternativeClasses);
         }
@@ -210,7 +210,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
     }
 
     private final List<Class<?>> enabledAlternativeClasses;
-    
+
     private WeldInitiator(Weld weld, List<Object> instancesToInject, Set<Class<? extends Annotation>> scopesToActivate,
             Set<Bean<?>> beans,
             Map<String, Object> resources, Function<InjectionPoint, Object> ejbFactory,
@@ -231,7 +231,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
         Weld weld = this.weld;
         if (weld == null) {
             // null in case of fromTestPackage() was used
-            weld = createWeld().addPackage(false, testInstances.getLast().getClass());
+            weld = createWeld().addPackage(false, testInstances.get/* Last */(testInstances.size() - 1).getClass());
         }
 
         weld.addBeanClass(Object.class); // TODO?
@@ -239,7 +239,7 @@ public class WeldInitiator extends AbstractWeldInitiator {
         TestInstanceInjectionExtension testInstanceInjectionExtension = new TestInstanceInjectionExtension(testInstances);
         weld.addExtension(testInstanceInjectionExtension);
         enabledAlternativeClasses.forEach(testInstanceInjectionExtension::addEnabledAlternativeClass);
-        
+
         return initWeldContainer(weld);
     }
 
