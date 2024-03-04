@@ -2,7 +2,7 @@
    <modelVersion>4.0.0</modelVersion>
    <artifactId>weld-junit-parent</artifactId>
    <packaging>pom</packaging>
-   <version>4.0.2-SNAPSHOT</version>
+   <version>4.0.3-SNAPSHOT</version>
 
    <name>Weld JUnit Extensions</name>
    <description>Set of JUnit extensions to enhance the testing of CDI components.</description>
@@ -87,6 +87,12 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>${version.junit.jupiter}</version>
          </dependency>
+
+          <dependency>
+              <groupId>org.junit.jupiter</groupId>
+              <artifactId>junit-jupiter-params</artifactId>
+              <version>${version.junit.jupiter}</version>
+          </dependency>
 
          <dependency>
             <groupId>org.junit.jupiter</groupId>
