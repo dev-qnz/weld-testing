@@ -2,7 +2,7 @@
    <modelVersion>4.0.0</modelVersion>
    <artifactId>weld-junit-parent</artifactId>
    <packaging>pom</packaging>
-   <version>4.0.3-SNAPSHOT</version>
+   <version>4.0.4-SNAPSHOT</version>
 
    <name>Weld JUnit Extensions</name>
    <description>Set of JUnit extensions to enhance the testing of CDI components.</description>
@@ -10,7 +10,7 @@
    <parent>
       <groupId>org.jboss.weld</groupId>
       <artifactId>weld-parent</artifactId>
-      <version>47</version>
+      <version>50</version>
    </parent>
 
    <url>http://weld.cdi-spec.org</url>
@@ -41,20 +41,22 @@
       <maven.compiler.target>11</maven.compiler.target>
       <!-- Versions -->
       <version.junit4>4.13.2</version.junit4>
-      <version.junit.jupiter>5.10.0</version.junit.jupiter>
-      <version.spock>2.1-groovy-3.0</version.spock>
-      <version.junit.platform>1.8.2</version.junit.platform>
-      <version.groovy>3.0.10</version.groovy>
+      <version.junit.jupiter>5.10.2</version.junit.jupiter>
+      <!-- version.spock and version.junit.platform should be upgraded together -->
+      <!-- see https://github.com/weld/weld-testing/pull/184#issuecomment-2024300488 -->
+      <version.spock>2.3-groovy-3.0</version.spock>
+      <version.junit.platform>1.9.0</version.junit.platform>
+      <version.groovy>3.0.21</version.groovy>
       <version.weld>5.1.2.Final</version.weld>
-      <version.mockito>4.4.0</version.mockito>
+      <version.mockito>5.11.0</version.mockito>
       <version.jakarta.ejb.api>4.0.1</version.jakarta.ejb.api>
       <version.jakarta.inject>2.0.1</version.jakarta.inject>
       <version.jakarta.cdi>4.0.1</version.jakarta.cdi>
       <version.jpa-api>3.1.0</version.jpa-api>
-      <version.log4j>2.17.2</version.log4j>
+      <version.log4j>2.23.1</version.log4j>
       <!-- SpotBugs properties -->
-      <version.spotbugs>4.6.0</version.spotbugs>
-      <version.spotbugs.plugin>4.6.0.0</version.spotbugs.plugin>
+      <version.spotbugs>4.8.3</version.spotbugs>
+      <version.spotbugs.plugin>4.8.3.1</version.spotbugs.plugin>
       <spotbugs.failOnError>false</spotbugs.failOnError>
       <spotbugs.threshold>Low</spotbugs.threshold>
    </properties>
@@ -211,8 +213,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <!--Minimal version with Junit 5 engine support-->
-                    <version>2.22.1</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
@@ -222,7 +222,6 @@
                 <plugin>
                     <groupId>org.codehaus.gmavenplus</groupId>
                     <artifactId>gmavenplus-plugin</artifactId>
-                    <version>1.13.1</version>
                     <executions>
                         <execution>
                             <goals>
